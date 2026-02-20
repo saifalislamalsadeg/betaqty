@@ -1,0 +1,145 @@
+// ============================================
+// Prisma Schema للإنتاج (PostgreSQL)
+// استخدم هذا الملف عند النشر على Vercel
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// المصارف الليبية
+model Bank {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  nameAr        String
+  logo          String
+  customIcon    String?  @db.Text
+  primaryColor  String
+  secondaryColor String
+  accentColor   String?
+  cardGradient  String?
+  textColor     String   @default("#FFFFFF")
+  hasOnePay     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cards         Card[]
+}
+
+// البطاقات المصرفية
+model Card {
+  id            String   @id @default(cuid())
+  token         String   @unique
+  accountName   String
+  accountNumber String
+  phoneNumber   String
+  bankId        String
+
+  paymentStatus PaymentStatus @default(PENDING)
+
+  receiptImage  String?  @db.Text
+  receiptUploadedAt DateTime?
+
+  isActivated   Boolean  @default(false)
+  activatedAt   DateTime?
+  activatedBy   String?
+
+  notes         String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  expiresAt     DateTime
+
+  bank          Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+// إعدادات النظام
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+// إعدادات الموقع العامة
+model SiteSettings {
+  id                    String   @id @default(cuid())
+
+  // معلومات الموقع
+  siteName              String   @default("بطاقتي")
+  siteDescription       String   @default("بطاقة معلومات مصرفية")
+  siteLogo              String?  @db.Text
+
+  // ألوان الموقع
+  primaryColor          String   @default("#10B981")
+  secondaryColor        String   @default("#14B8A6")
+  headerBgColor         String   @default("#FFFFFF")
+  footerBgColor         String   @default("#FFFFFF")
+
+  // نصوص الواجهة
+  welcomeTitle          String   @default("اختر مصرفك")
+  welcomeSubtitle       String   @default("حدد المصرف الذي تريد إنشاء بطاقة له")
+  paymentTitle          String   @default("إتمام الدفع")
+  completedTitle        String   @default("بطاقتك جاهزة!")
+
+  // معلومات التذييل
+  footerText            String   @default("جميع الحقوق محفوظة")
+  showFooterYear        Boolean  @default(true)
+
+  // إعدادات البطاقة
+  showOnePayBadge       Boolean  @default(true)
+  cardPrice             String   @default("15")
+  cardValidityDays      String   @default("7")
+
+  // إعدادات الدفع
+  paymentAccountName    String   @default("حساب التطبيق")
+  paymentAccountNumber  String   @default("1234567890")
+  paymentBank           String   @default("مصرف الجمهورية")
+
+  // العلامة المائية
+  watermarkText         String   @default("غير مدفوع")
+  watermarkEnabled      Boolean  @default(true)
+
+  updatedAt             DateTime @updatedAt
+}
+
+// المديرون
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// سجل العمليات
+model ActivityLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?  @db.Text
+  cardId    String?
+  adminId   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+enum PaymentStatus {
+  PENDING
+  UPLOADED
+  APPROVED
+  REJECTED
+}

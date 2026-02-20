@@ -219,12 +219,7 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminInfo) => void }) {
               )}
             </Button>
             
-            <div className="text-center text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg">
-              <p>بيانات الدخول الافتراضية:</p>
-              <p className="font-mono mt-1">
-                اسم المستخدم: <strong>admin</strong> | كلمة المرور: <strong>admin123</strong>
-              </p>
-            </div>
+
           </form>
         </CardContent>
       </Card>
